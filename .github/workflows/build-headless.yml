@@ -1,0 +1,32 @@
+name: Build headless binary
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install NASM (for BoringSSL)
+        run: choco install nasm -y
+
+      - name: Add NASM to PATH
+        shell: pwsh
+        run: echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: Build antigravity_tools (release)
+        working-directory: src-tauri
+        run: cargo build --release --bin antigravity_tools
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: antigravity_tools-windows-x64
+          path: src-tauri/target/release/antigravity_tools.exe
+          if-no-files-found: error
