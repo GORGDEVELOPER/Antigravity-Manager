@@ -30,10 +30,7 @@ jobs:
         run: echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Build Antigravity Tools
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
-        run: npm run tauri build
+        run: npm run tauri build -- --ci --no-sign --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
       - name: Upload Windows installer
         uses: actions/upload-artifact@v4
