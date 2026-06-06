@@ -1,4 +1,4 @@
-name: Build headless binary
+name: Build Windows app
 
 on:
   workflow_dispatch:
@@ -13,6 +13,15 @@ jobs:
       - name: Rust setup
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Node.js setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install frontend dependencies
+        run: npm install --legacy-peer-deps
+
       - name: Install NASM (for BoringSSL)
         run: choco install nasm -y
 
@@ -20,13 +29,17 @@ jobs:
         shell: pwsh
         run: echo "C:\Program Files\NASM" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
-      - name: Build antigravity_tools (release)
-        working-directory: src-tauri
-        run: cargo build --release --bin antigravity_tools
+      - name: Build Antigravity Tools
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        run: npm run tauri build
 
-      - name: Upload binary
+      - name: Upload Windows installer
         uses: actions/upload-artifact@v4
         with:
-          name: antigravity_tools-windows-x64
-          path: src-tauri/target/release/antigravity_tools.exe
+          name: antigravity-tools-windows-x64
+          path: |
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi
           if-no-files-found: error
